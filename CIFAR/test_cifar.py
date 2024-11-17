@@ -154,11 +154,13 @@ def plot():
         break
     grids = []
     for i in range(5):
-        grids += [inputs[i*10:i*10+10],atkdata[i*10:i*10+10]]
+        grids += [inputs[i:i + 1],atkdata[i:i + 1]]
     image = torchvision.utils.make_grid(torch.cat(grids),
-                                        nrow=10,
+                                        nrow=2,
                                         padding=2)
-    torchvision.utils.save_image(image, 'cifar.png')
+    pil_image = transforms.functional.to_pil_image(image)
+    width, height = pil_image.size
+    pil_image.resize((width * 5, height * 5)).save("cifar.png")
 
 def valid(epoch):
     global best_acc

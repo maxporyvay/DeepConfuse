@@ -1,14 +1,36 @@
 from sklearn.ensemble import RandomForestClassifier
 import torch
+from torchvision import datasets, transforms
 from sklearn import svm
 
-Xtrain_clean, ytrain = torch.load('data/MNIST/processed/training.pt')
+train_loader = torch.utils.data.DataLoader(
+    datasets.MNIST('data', train=True,
+                   transform=transforms.Compose([
+                       transforms.ToTensor()
+                   ])),
+    batch_size=10000, shuffle=True)
+test_loader = torch.utils.data.DataLoader(
+    datasets.MNIST('data', train=False,
+                   transform=transforms.Compose([
+                       transforms.ToTensor()
+                   ])),
+    batch_size=10000, shuffle=True)
+
+Xtrain_clean, ytrain, Xtest_clean, ytest = None, None, None, None
+for data, labels in train_loader:
+    Xtrain_clean = data
+    ytrain = labels
+    break
+for data, labels in test_loader:
+    Xtest_clean = data
+    ytest = labels
+    break
+
 Xtrain_adv = torch.load('training_adv.pt')
 Xtrain_clean = Xtrain_clean.float().numpy() / 255.
 ytrain = ytrain.numpy()
 Xtrain_adv = Xtrain_adv.numpy()
 
-Xtest_clean, ytest = torch.load('data/MNIST/processed/test.pt')
 Xtest_adv = torch.load('test_adv.pt')
 Xtest_clean = Xtest_clean.float().numpy() / 255.
 ytest = ytest.numpy()
@@ -35,7 +57,3 @@ rfc = RandomForestClassifier(n_jobs=-1, n_estimators=100)
 rfc.fit(Xtrain_clean.reshape(60000, -1), ytrain)
 print('train on clean, test on clean: ',
       rfc.score(Xtest_clean.reshape(10000, -1), ytest))
-
-import IPython;
-
-IPython.embed()
